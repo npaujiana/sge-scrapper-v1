@@ -1,0 +1,14 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "https://www.socialgrowthengineers.com",
+      "localStorage": [
+        {
+          "name": "sge-auth-token",
+          "value": "{\"access_token\": \"eyJhbGciOiJIUzI1NiIsImtpZCI6IlBYWVNhNWlveEUzSnR2TmsiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3ZtdXN3ZXR5ZHl1cG1rY3ZteXhpLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiI0ZGU1N2Q4Yi0yM2U4LTQ2NjMtODgwYS1iZTU3NmY5ZTIzNzAiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzY5NjIxNDM4LCJpYXQiOjE3Njk2MTc4MzgsImVtYWlsIjoiY2FrYWlkZXZlbG9wbWVudEBnbWFpbC5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7ImVtYWlsIjoiY2FrYWlkZXZlbG9wbWVudEBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJzdWIiOiI0ZGU1N2Q4Yi0yM2U4LTQ2NjMtODgwYS1iZTU3NmY5ZTIzNzAifSwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJvdHAiLCJ0aW1lc3RhbXAiOjE3Njk2MTc4Mzh9XSwic2Vzc2lvbl9pZCI6IjU0NDY5MGI3LWQ3ZGMtNDA5NS1hODMwLWRjODllZjdiNDIwNSIsImlzX2Fub255bW91cyI6ZmFsc2V9.Rxo7drlYmChODBbuEi-RXLlVYNfVEy82J75eOLX7DIY\", \"token_type\": \"bearer\", \"expires_in\": 3600, \"expires_at\": 1769621438, \"refresh_token\": \"oxh3fnxxb7nm\"}"
+        }
+      ]
+    }
+  ]
+}
