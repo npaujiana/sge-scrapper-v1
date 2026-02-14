@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
-from api.routes import scraper_router, articles_router, sessions_router, auth_router
+from api.routes import scraper_router, articles_router, sessions_router, auth_router, tiktok_router
 from api.schemas import HealthResponse, ErrorResponse
 from config.logging_config import get_logger
 
@@ -94,12 +94,25 @@ app.include_router(auth_router)
 app.include_router(scraper_router)
 app.include_router(articles_router)
 app.include_router(sessions_router)
+app.include_router(tiktok_router)
 
 
 # Startup event
 @app.on_event("startup")
 async def startup_event():
+    from config.logging_config import setup_logging
+    from config.settings import settings
+    from database.connection import check_connection, init_database
+
+    setup_logging(settings.log_level, settings.log_file)
     logger.info("SGE Scraper API starting up...")
+
+    # Check database
+    if check_connection():
+        logger.info("Database connection OK")
+        init_database()
+    else:
+        logger.warning("Database connection failed! Some features may not work.")
 
 
 # Shutdown event

@@ -154,6 +154,55 @@ class SitemapParser:
         self.logger.info(f"Total unique article URLs found: {len(all_urls)}")
         return list(all_urls)
 
+    async def get_latest_article_urls_from_homepage(self, limit: int = 50) -> List[str]:
+        """
+        Fetch the latest article URLs from the homepage.
+        
+        This is more reliable than sitemap for getting recent articles since 
+        the homepage always shows the most recent content.
+        
+        Args:
+            limit: Maximum number of URLs to return.
+            
+        Returns:
+            List of article URLs from the homepage.
+        """
+        from bs4 import BeautifulSoup
+        
+        all_urls: Set[str] = set()
+        
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                # Fetch homepage
+                response = await client.get(settings.base_url)
+                response.raise_for_status()
+                
+                soup = BeautifulSoup(response.text, 'html.parser')
+                
+                # Find all article links
+                for link in soup.find_all('a', href=True):
+                    href = link['href']
+                    
+                    # Make absolute URL
+                    if href.startswith('/'):
+                        href = settings.base_url + href
+                    elif not href.startswith('http'):
+                        continue
+                    
+                    # Check if it's an article URL
+                    if self._is_article_url(href):
+                        all_urls.add(href)
+                        
+                        if len(all_urls) >= limit:
+                            break
+                            
+                self.logger.info(f"Found {len(all_urls)} article URLs from homepage")
+                
+        except Exception as e:
+            self.logger.error(f"Error fetching homepage: {e}")
+            
+        return list(all_urls)[:limit]
+
     async def get_article_urls_for_date(self, target_date: date) -> List[str]:
         """
         Fetch and parse all sitemaps to get article URLs for a specific date.

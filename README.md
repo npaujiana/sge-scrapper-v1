@@ -57,6 +57,21 @@ alembic upgrade head
 
 ## Usage
 
+### Start API Server (Swagger UI)
+```bash
+# Start API server
+python main.py --api
+
+# Custom host/port
+python main.py --api --api-host 127.0.0.1 --api-port 3000
+
+# Swagger UI available at:
+# http://localhost:8000/docs
+
+# Alternative (direct uvicorn):
+# uvicorn api.main:app --reload
+```
+
 ### Database Migrations
 ```bash
 # Run migrations
@@ -190,30 +205,6 @@ sge-scraper/
 ├── requirements.txt
 ├── alembic.ini              # Alembic configuration
 └── .env.example
-```
-
-## Verification
-
-1. Test database connection:
-```bash
-python -c "from database.connection import get_engine; print(get_engine().connect())"
-```
-
-2. Test single article:
-```bash
-python main.py --test-url "https://www.socialgrowthengineers.com/[article-slug]"
-```
-
-3. Run limited scrape:
-```bash
-python main.py --run-once --limit 5
-```
-
-4. Check database:
-```sql
-SELECT COUNT(*) FROM articles;
-SELECT COUNT(*) FROM social_contents;
-SELECT * FROM scrape_sessions ORDER BY started_at DESC LIMIT 5;
 ```
 
 ## License

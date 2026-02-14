@@ -220,14 +220,30 @@ def _run_playwright_verify_code(code: str, email: str, login_url: str, session_d
                 page.wait_for_timeout(500)
 
                 # Find and click verify/submit button
-                verify_button = page.query_selector('button[type="submit"], input[type="submit"], button:has-text("Verify"), button:has-text("Submit"), button:has-text("Login"), button:has-text("Sign in"), button:has-text("Continue")')
+                verify_button_selectors = [
+                    'button[type="submit"]',
+                    'input[type="submit"]',
+                    'button:has-text("Verify")',
+                    'button:has-text("Submit")',
+                    'button:has-text("Login")',
+                    'button:has-text("Sign in")',
+                    'button:has-text("Continue")',
+                    # Generic fallback
+                    'button',
+                ]
+                verify_button = None
+                for selector in verify_button_selectors:
+                    verify_button = page.query_selector(selector)
+                    if verify_button:
+                        print(f"[PROCESS] Found verify button with selector: {selector}")
+                        break
 
                 if not verify_button:
                     return False, "Could not find verify button"
 
                 # Click verify
                 verify_button.click()
-                page.wait_for_timeout(3000)
+                page.wait_for_timeout(10000) # Increased delay to 10 seconds
 
                 # Check if login was successful
                 current_url = page.url
@@ -685,7 +701,7 @@ class AuthService:
                 processed_cookie = {
                     "name": cookie.get("name"),
                     "value": cookie.get("value"),
-                    "domain": cookie.get("domain", ".socialgrowthengineers.com"),
+                    "domain": cookie.get("domain", ".www.socialgrowthengineers.com"),
                     "path": cookie.get("path", "/"),
                 }
                 # Optional fields

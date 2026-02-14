@@ -56,5 +56,11 @@ class Settings(BaseSettings):
         logs_path.mkdir(exist_ok=True)
         return logs_path
 
+    @property
+    def screenshots_dir(self) -> Path:
+        screenshots_path = self.project_root / "screenshots"
+        screenshots_path.mkdir(exist_ok=True)
+        return screenshots_path
+
 
 settings = Settings()

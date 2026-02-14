@@ -96,6 +96,8 @@ class SocialContent(Base):
     caption: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     extra_data: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
     position_in_article: Mapped[int] = mapped_column(Integer, default=0)
+    screenshot_path: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    screenshot_source: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)  # 'screenshot' | 'oembed'
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     # Relationship to article

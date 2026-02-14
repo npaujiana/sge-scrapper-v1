@@ -106,6 +106,16 @@ def scrape_article_sync(
                 social_html = "\n".join([part for part in [html_content, extra_content_html] if part])
                 article_data["social_contents"] = _extract_social_contents(social_html)
 
+                # Capture screenshots for all social platforms
+                from .social_screenshot import capture_screenshots_for_article
+                from config.settings import settings
+                
+                article_data["social_contents"] = capture_screenshots_for_article(
+                    social_contents=article_data["social_contents"],
+                    output_dir=str(settings.screenshots_dir),
+                    article_slug=article_data.get("slug", "unknown")
+                )
+
                 print(f"[SCRAPER] Success: {article_data.get('title', url)[:50]}")
                 return article_data
 
@@ -202,9 +212,9 @@ def _parse_article_sync(
     # Extract read time
     read_time = post.get("readTime")
 
-    # Extract published date
+    # Extract published date - check 'date' field first (SGE uses this)
     published_at = None
-    date_str = post.get("publishedAt") or post.get("createdAt")
+    date_str = post.get("date") or post.get("publishedAt") or post.get("createdAt") or post.get("published_at") or post.get("created_at")
     if not date_str:
         time_elem = soup.find("time")
         if time_elem:

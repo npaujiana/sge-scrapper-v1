@@ -153,16 +153,43 @@ class ScrapeService:
             scrape_session = session_service.create_session(target_date=target_date)
 
             try:
-                # Get article URLs - try date-filtered first, fallback to all
+                # Get article URLs for the specific target date
                 article_urls = await self.sitemap_parser.get_article_urls_for_date(target_date)
 
-                # If no date-filtered URLs, get all and filter by published_at after scraping
+                # If no date-filtered URLs found from sitemap, try homepage
+                # Homepage shows latest articles which may include target date
                 if not article_urls:
                     self.logger.info(
-                        "No URLs found via sitemap date filter. "
-                        "Will filter by published_at after scraping."
+                        f"No articles found in sitemap for date {target_date}. "
+                        "Trying to fetch latest articles from homepage..."
                     )
-                    article_urls = await self.sitemap_parser.get_all_article_urls()
+                    article_urls = await self.sitemap_parser.get_latest_article_urls_from_homepage(limit=100)
+                    
+                    if not article_urls:
+                        self.logger.info("No articles found from homepage either.")
+                        session_service.complete_session(
+                            scrape_session,
+                            articles_found=0,
+                            articles_scraped=0,
+                            articles_success=0,
+                            articles_failed=0,
+                            articles_new=0,
+                            articles_updated=0,
+                            articles_skipped=0,
+                        )
+                        return {
+                            "status": "completed",
+                            "session_id": scrape_session.id,
+                            "target_date": str(target_date),
+                            "message": f"No articles found for {target_date}.",
+                            "articles_found": 0,
+                            "articles_scraped": 0,
+                            "articles_success": 0,
+                            "articles_failed": 0,
+                            "articles_new": 0,
+                            "articles_updated": 0,
+                            "articles_skipped": 0,
+                        }
 
                 session_service.update_session(
                     scrape_session, articles_found=len(article_urls)
@@ -309,11 +336,11 @@ class ScrapeService:
             True if article is from target date, False otherwise.
         """
         if article_data.published_at is None:
-            # If no published date, assume it's valid (can't verify)
+            # If no published date, assume it's invalid
             self.logger.warning(
-                f"Article has no published_at date: {article_data.title[:50] if article_data.title else 'Unknown'}"
+                f"Article has no published_at date, skipping: {article_data.title[:50] if article_data.title else 'Unknown'}"
             )
-            return True
+            return False
 
         article_date = article_data.published_at.date()
         return article_date == target_date
@@ -609,6 +636,8 @@ class ScrapeService:
                 caption=sc_data.get("caption"),
                 position_in_article=sc_data.get("position_in_article", 0),
                 extra_data=extra_data if extra_data else None,
+                screenshot_path=sc_data.get("screenshot_path"),
+                screenshot_source=sc_data.get("screenshot_source"),
             )
             db.add(social_content)
 

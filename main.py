@@ -1,17 +1,4 @@
-#!/usr/bin/env python3
-"""
-SGE Scraper - Main Entry Point
 
-Usage:
-    python main.py --login             # Login manual (browser terbuka)
-    python main.py --check-session     # Cek status session login
-    python main.py --clear-session     # Hapus session login
-    python main.py --run-once          # Run scrape untuk hari ini
-    python main.py --run-once --date 2024-01-15  # Scrape untuk tanggal tertentu
-    python main.py --status            # Cek status scrape hari ini
-    python main.py --export            # Export artikel ke Excel
-    python main.py --migrate           # Run database migrations
-"""
 
 import argparse
 import asyncio
@@ -85,83 +72,6 @@ def migrate_status() -> None:
     run_alembic_command(["history", "--verbose"])
 
 
-async def wait_for_login_complete() -> None:
-    """Wait for user to complete login in browser."""
-    import sys
-
-    print(f"\n{'='*50}")
-    print(f"  Browser terbuka. Silakan login manual:")
-    print(f"  1. Masukkan email Anda")
-    print(f"  2. Masukkan verification code dari email")
-    print(f"  3. Tunggu sampai login berhasil")
-    print(f"{'='*50}")
-    print(f"\n  Tekan ENTER setelah login berhasil...", end="", flush=True)
-
-    # Wait for user input
-    await asyncio.get_event_loop().run_in_executor(None, input)
-
-
-async def do_login() -> None:
-    """Login to SGE website (manual)."""
-    logger = setup_logging(settings.log_level, settings.log_file)
-    logger.info("Starting manual login process...")
-
-    print(f"\n{'='*50}")
-    print(f"LOGIN TO SGE (Manual)")
-    print(f"{'='*50}")
-    print(f"  Browser akan terbuka...")
-
-    scrape_service = ScrapeService()
-    result = await scrape_service.login(
-        wait_callback=wait_for_login_complete,
-    )
-
-    print(f"\n{'='*50}")
-    if result["status"] == "success":
-        print(f"  Status: SUCCESS")
-        print(f"  {result['message']}")
-        print(f"\n  Sekarang bisa jalankan scraper:")
-        print(f"  python main.py --run-once")
-    else:
-        print(f"  Status: FAILED")
-        print(f"  {result['message']}")
-    print(f"{'='*50}\n")
-
-
-def check_session() -> None:
-    """Check login session status."""
-    logger = setup_logging(settings.log_level, settings.log_file)
-
-    scrape_service = ScrapeService()
-    result = scrape_service.check_session()
-
-    print(f"\n{'='*50}")
-    print(f"SESSION STATUS")
-    print(f"{'='*50}")
-    if result["has_session"]:
-        print(f"  Status: LOGGED IN")
-        print(f"  Email: {result['email']}")
-    else:
-        print(f"  Status: NOT LOGGED IN")
-        print(f"  Please login with: python main.py --login YOUR_EMAIL")
-    print(f"{'='*50}\n")
-
-
-def clear_session() -> None:
-    """Clear login session."""
-    logger = setup_logging(settings.log_level, settings.log_file)
-
-    scrape_service = ScrapeService()
-    result = scrape_service.clear_session()
-
-    print(f"\n{'='*50}")
-    print(f"CLEAR SESSION")
-    print(f"{'='*50}")
-    print(f"  Status: {result['status'].upper()}")
-    print(f"  {result['message']}")
-    print(f"{'='*50}\n")
-
-
 async def run_once(
     limit: int = None,
     target_date: date = None,
@@ -183,7 +93,7 @@ async def run_once(
     logger.info(f"Scrape completed: {result}")
     print(f"\n{'='*50}")
     print(f"SCRAPE RESULT FOR DATE: {target_date}")
-    print(f"{'='*50}")
+    print(f"{ '='*50}")
     print(f"  Status: {result.get('status')}")
     print(f"  Session ID: {result.get('session_id')}")
 
@@ -204,7 +114,7 @@ async def run_once(
     else:
         print(f"  Error: {result.get('error')}")
 
-    print(f"{'='*50}\n")
+    print(f"{ '='*50}\n")
 
 
 async def test_single_url(url: str, target_date: date = None) -> None:
@@ -218,7 +128,7 @@ async def test_single_url(url: str, target_date: date = None) -> None:
     if result:
         print(f"\n{'='*50}")
         print(f"ARTICLE DATA")
-        print(f"{'='*50}")
+        print(f"{ '='*50}")
         print(f"  ID: {result.get('sge_id')}")
         print(f"  Title: {result.get('title')}")
         print(f"  Subtitle: {(result.get('subtitle') or '')[:100]}...")
@@ -235,7 +145,7 @@ async def test_single_url(url: str, target_date: date = None) -> None:
         print(f"\nSocial Media Content ({result.get('social_contents_count', 0)} items):")
         for sc in result.get('social_contents', []):
             print(f"  - {sc.get('platform')}: {sc.get('content_type')} - {sc.get('url', 'N/A')}")
-        print(f"{'='*50}\n")
+        print(f"{ '='*50}\n")
     else:
         print("Failed to scrape article")
 
@@ -251,7 +161,7 @@ async def check_status(target_date: date = None) -> None:
 
     print(f"\n{'='*50}")
     print(f"SCRAPE STATUS FOR: {target_date}")
-    print(f"{'='*50}")
+    print(f"{ '='*50}")
 
     if result.get('has_successful_scrape'):
         print(f"  Status: COMPLETED")
@@ -264,7 +174,7 @@ async def check_status(target_date: date = None) -> None:
         print(f"  Status: NOT SCRAPED")
         print(f"  No successful scrape for this date yet.")
 
-    print(f"{'='*50}\n")
+    print(f"{ '='*50}\n")
 
 
 def export_to_excel(
@@ -292,7 +202,7 @@ def export_to_excel(
     logger.info(f"Exporting articles to Excel ({filter_desc})...")
     print(f"\n{'='*50}")
     print(f"EXPORT TO EXCEL")
-    print(f"{'='*50}")
+    print(f"{ '='*50}")
     print(f"  Filter: {filter_desc}")
     print(f"  Include Content: {'Yes' if include_content else 'No'}")
 
@@ -308,19 +218,19 @@ def export_to_excel(
 
         print(f"\n  Status: SUCCESS")
         print(f"  Output File: {output_file}")
-        print(f"{'='*50}\n")
+        print(f"{ '='*50}\n")
         logger.info(f"Export completed: {output_file}")
 
     except ValueError as e:
         print(f"\n  Status: FAILED")
         print(f"  Error: {e}")
-        print(f"{'='*50}\n")
+        print(f"{ '='*50}\n")
         logger.error(f"Export failed: {e}")
 
     except Exception as e:
         print(f"\n  Status: ERROR")
         print(f"  Error: {e}")
-        print(f"{'='*50}\n")
+        print(f"{ '='*50}\n")
         logger.error(f"Export error: {e}")
 
 
@@ -334,7 +244,7 @@ def list_exports() -> None:
 
     print(f"\n{'='*50}")
     print(f"EXPORT FILES")
-    print(f"{'='*50}")
+    print(f"{ '='*50}")
 
     if not exports:
         print("  No export files found.")
@@ -347,7 +257,7 @@ def list_exports() -> None:
             print(f"     Path: {exp['path']}")
             print()
 
-    print(f"{'='*50}\n")
+    print(f"{ '='*50}\n")
 
 
 async def run_scheduled() -> None:
@@ -380,6 +290,27 @@ def parse_date(date_str: str) -> date:
         )
 
 
+async def run_manual_login() -> None:
+    """Run manual login flow."""
+    logger = setup_logging(settings.log_level, settings.log_file)
+    logger.info("Starting manual login...")
+
+    scrape_service = ScrapeService()
+
+    async def wait_for_login():
+        print("\n" + "="*50)
+        print("A browser window has been opened.")
+        print("Please log in to the website.")
+        print("After you have successfully logged in, please return to this terminal and press Enter.")
+        print("="*50 + "\n")
+        
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, sys.stdin.readline)
+
+    result = await scrape_service.login(wait_callback=wait_for_login)
+    print(f"\nLogin result: {result.get('message')}\n")
+
+
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
@@ -387,31 +318,18 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python main.py --login                       # Login (browser terbuka)
-  python main.py --check-session               # Cek status login
-  python main.py --run-once                    # Scrape untuk hari ini
-  python main.py --run-once --date 2024-01-15  # Scrape tanggal tertentu
-  python main.py --status                      # Cek status scrape
-  python main.py --export                      # Export ke Excel
+  python main.py --login
+  python main.py --run-once
+  python main.py --status
+  python main.py --export
         """
     )
-    # Login options
+    # Scrape options
     parser.add_argument(
         "--login",
         action="store_true",
-        help="Login to SGE (browser akan terbuka, login manual)"
+        help="Run manual login flow to save session"
     )
-    parser.add_argument(
-        "--check-session",
-        action="store_true",
-        help="Check if logged in session exists"
-    )
-    parser.add_argument(
-        "--clear-session",
-        action="store_true",
-        help="Clear saved login session"
-    )
-    # Scrape options
     parser.add_argument(
         "--run-once",
         action="store_true",
@@ -493,6 +411,23 @@ Examples:
         action="store_true",
         help="Run with scheduler (default mode)"
     )
+    # API server
+    parser.add_argument(
+        "--api",
+        action="store_true",
+        help="Start the API server with Swagger UI"
+    )
+    parser.add_argument(
+        "--api-host",
+        default="0.0.0.0",
+        help="API host (default: 0.0.0.0)"
+    )
+    parser.add_argument(
+        "--api-port",
+        type=int,
+        default=8000,
+        help="API port (default: 8000)"
+    )
 
     args = parser.parse_args()
 
@@ -501,12 +436,15 @@ Examples:
     signal.signal(signal.SIGTERM, signal_handler)
 
     # Handle different modes
-    if args.login:
-        asyncio.run(do_login())
-    elif args.check_session:
-        check_session()
-    elif args.clear_session:
-        clear_session()
+    if args.api:
+        import uvicorn
+        setup_logging(settings.log_level, settings.log_file)
+        print(f"Starting SGE Scraper API server on {args.api_host}:{args.api_port}")
+        print(f"Swagger UI: http://localhost:{args.api_port}/docs")
+        uvicorn.run("api.main:app", host=args.api_host, port=args.api_port, reload=True)
+        sys.exit(0)
+    elif args.login:
+        asyncio.run(run_manual_login())
     elif args.migrate:
         migrate_db()
     elif args.migrate_status:

@@ -46,7 +46,7 @@ class ManualSessionRequest(BaseModel):
                     {
                         "name": "session_token",
                         "value": "abc123...",
-                        "domain": ".socialgrowthengineers.com",
+                        "domain": ".www.socialgrowthengineers.com",
                         "path": "/"
                     }
                 ]
@@ -93,18 +93,15 @@ async def request_login_code(request: RequestCodeRequest):
 
     After this, use /verify-code endpoint with the code from email.
     """
-    import traceback
     auth_service = AuthService()
 
     try:
-        print(f"[DEBUG] Calling request_login_code for {request.email}")
+        logger.info(f"Requesting login code for {request.email}")
         success, message = await auth_service.request_login_code(request.email)
-        print(f"[DEBUG] Result: success={success}, message={message}")
+        logger.info(f"Request login code result: success={success}, message={message}")
         return AuthResponse(success=success, message=message)
     except Exception as e:
-        error_detail = traceback.format_exc()
-        logger.error(f"Error in request_login_code: {e}\n{error_detail}")
-        print(f"[DEBUG] Exception: {e}\n{error_detail}")
+        logger.error(f"Error in request_login_code: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -164,7 +161,7 @@ async def set_auth_token(request: TokenSessionRequest):
     Set session menggunakan token dari localStorage.
 
     Cara mendapatkan token:
-    1. Login ke socialgrowthengineers.com di browser
+    1. Login ke www.socialgrowthengineers.com di browser
     2. Buka DevTools (F12) -> Application -> Local Storage
     3. Cari key "sge-auth-token"
     4. Copy value-nya (JSON string)
@@ -199,9 +196,9 @@ async def set_manual_session(request: ManualSessionRequest):
     Set session secara manual dengan cookies dari browser.
 
     Cara mendapatkan cookies:
-    1. Login ke socialgrowthengineers.com di browser
+    1. Login ke www.socialgrowthengineers.com di browser
     2. Buka DevTools (F12) -> Application -> Cookies
-    3. Copy semua cookies untuk domain socialgrowthengineers.com
+    3. Copy semua cookies untuk domain www.socialgrowthengineers.com
     4. Atau gunakan extension seperti "EditThisCookie" untuk export cookies sebagai JSON
 
     Format cookies minimal:
@@ -209,7 +206,7 @@ async def set_manual_session(request: ManualSessionRequest):
     {
         "email": "your@email.com",
         "cookies": [
-            {"name": "cookie_name", "value": "cookie_value", "domain": ".socialgrowthengineers.com"}
+            {"name": "cookie_name", "value": "cookie_value", "domain": ".www.socialgrowthengineers.com"}
         ]
     }
     ```

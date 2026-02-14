@@ -372,14 +372,49 @@ class ArticleScraper:
         """Extract published date."""
         date_str = None
 
+        # 1. From __NEXT_DATA__ props
         if "post" in page_props:
-            date_str = page_props["post"].get("publishedAt") or page_props["post"].get("createdAt")
+            date_str = page_props["post"].get("publishedAt") or page_props["post"].get("createdAt") or page_props["post"].get("date")
 
-        # From HTML
+        # 2. From JSON-LD script tag
+        if not date_str:
+            try:
+                json_ld_script = soup.find("script", {"type": "application/ld+json"})
+                if json_ld_script:
+                    json_data = json.loads(json_ld_script.string)
+                    date_str = json_data.get("datePublished") or json_data.get("publishedDate")
+            except Exception:
+                pass # Ignore if JSON-LD is malformed or not present
+
+        # 3. From HTML meta tags
+        if not date_str:
+            meta_selectors = [
+                "meta[property='article:published_time']",
+                "meta[property='og:published_time']",
+                "meta[name='pubdate']",
+                "meta[name='date']",
+            ]
+            for selector in meta_selectors:
+                meta_tag = soup.select_one(selector)
+                if meta_tag and meta_tag.get("content"):
+                    date_str = meta_tag["content"]
+                    break
+        
+        # 4. From <time> element
         if not date_str:
             time_elem = soup.find("time")
             if time_elem:
                 date_str = time_elem.get("datetime") or time_elem.get_text(strip=True)
+
+        # 5. Fallback: search for date-like text in the article body (less reliable)
+        if not date_str:
+            article_body = soup.select_one("article, .post-content")
+            if article_body:
+                # Regex for YYYY-MM-DD or Month Day, Year
+                date_pattern = re.compile(r'\b(\d{4}-\d{2}-\d{2})|((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+\d{1,2},\s+\d{4})\b')
+                match = date_pattern.search(article_body.get_text())
+                if match:
+                    date_str = match.group(0)
 
         if date_str:
             try:
@@ -388,11 +423,13 @@ class ArticleScraper:
             except ValueError:
                 pass
 
-            # Try common formats
+            # Try common formats using dateutil.parser
             from dateutil import parser
             try:
                 return parser.parse(date_str)
-            except Exception:
+            except (parser.ParserError, TypeError, ValueError):
+                self.logger.warning(f"Could not parse date string: {date_str}")
                 pass
 
+        self.logger.warning("Could not extract any published date.")
         return None

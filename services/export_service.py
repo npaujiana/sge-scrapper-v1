@@ -6,6 +6,7 @@ from typing import Optional, List
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
+from openpyxl.drawing.image import Image as XLImage
 from sqlalchemy.orm import Session
 
 from database.models import Article, SocialContent, ScrapeSession
@@ -119,6 +120,7 @@ class ExportService:
             "Social Username",
             "Social Caption",
             "Thumbnail URL",
+            "Screenshot",  # New column for embedded image
         ]
 
         if include_content:
@@ -185,6 +187,7 @@ class ExportService:
                         sc.username or "",
                         (sc.caption or "")[:500],
                         sc.thumbnail_url or "",
+                        "",  # Screenshot column - will add image separately
                     ]
 
                     row_data = [record_num] + article_data + social_data + content_data
@@ -205,11 +208,25 @@ class ExportService:
                             cell.hyperlink = value
                             cell.font = Font(color="0563C1", underline="single")
 
+                    # Embed screenshot image if available
+                    if sc.screenshot_path and Path(sc.screenshot_path).exists():
+                        try:
+                            img = XLImage(sc.screenshot_path)
+                            # Resize to reasonable dimensions
+                            img.width = 100
+                            img.height = 75
+                            # Place in Screenshot column (column 15 = O)
+                            ws.add_image(img, f"O{row_num}")
+                            # Set row height to accommodate image
+                            ws.row_dimensions[row_num].height = 60
+                        except Exception as e:
+                            self.logger.warning(f"Failed to embed image: {e}")
+
                     row_num += 1
                     record_num += 1
             else:
                 # Article without social content - still add one row
-                social_data = ["", "", "", "", "", ""]
+                social_data = ["", "", "", "", "", "", ""]  # Added empty screenshot
                 row_data = [record_num] + article_data + social_data + content_data
 
                 for col, value in enumerate(row_data, 1):
@@ -240,11 +257,12 @@ class ExportService:
             12: 18,  # Social Username
             13: 40,  # Social Caption
             14: 50,  # Thumbnail URL
+            15: 15,  # Screenshot
         }
 
         if include_content:
-            column_widths[15] = 40  # Subtitle
-            column_widths[16] = 80  # Content
+            column_widths[16] = 40  # Subtitle
+            column_widths[17] = 80  # Content
 
         for col, width in column_widths.items():
             ws.column_dimensions[get_column_letter(col)].width = width
